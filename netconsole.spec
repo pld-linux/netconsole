@@ -38,4 +38,4 @@ fi
 %files
 %defattr(644,root,root,755)
 %config(noreplace) %verify(not md5 mtime size) /etc/sysconfig/netconsole
-%attr(754,root,root) %config /etc/rc.d/init.d/netconsole
+%attr(754,root,root) /etc/rc.d/init.d/netconsole
