@@ -1,28 +1,31 @@
 # $Id$
 # Customized settings for netconsole module
+# more information can be found from linux-source/Documentation/networking/netconsole.txt
 
-# required!
-# target ip
-TGT_IP=""
-
+# network interface (eth0)
 DEVICE=eth0
 
-# source ip
-SRC_IP=''
+# source IP to use (interface address)
+SRC_IP=""
 # will default to first address on $DEVICE
 # must be specified if the device does not have an IP at init time
+
+# source for UDP packets (defaults to 6665)
 SRC_PORT=6665 # default
 
-# netconsole.txt says 6666 is the default
+# IP address for logging agent
+TGT_IP=""
+
+# port for logging agent (defaults 6666)
 TGT_PORT=6666
 
 # if you want to broadcast, specify 'broadcast' here.
 # it's a security hole on an untrusted network.
 TGT_MAC=""
 
-LOGLEVEL="1"
-# LOGLEVEL are the kernel console logging levels
+# LOGLEVEL is the kernel console logging levels
 # [0..7] = EMERG,ALERT,CRIT,ERR,WARNING,NOTICE,INFO,DEBUG
 # 1 means only kernel panics are reported (default)
 # this affects all console logging
 # see syslog(2) for more info
+LOGLEVEL="1"
