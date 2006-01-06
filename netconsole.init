@@ -1,0 +1,134 @@
+#!/bin/sh
+#
+# netconsole assisted netconsole module loading
+#
+# chkconfig:	2345 29 20
+#
+# description:	This initscript loads netconsole kernel module.
+#
+# $Id$
+
+# Source function library
+. /etc/rc.d/init.d/functions
+
+# Get network config
+. /etc/sysconfig/network
+
+# Get service config - may override defaults
+[ -f /etc/sysconfig/netconsole ] && . /etc/sysconfig/netconsole
+
+# Check that networking is up.
+if is_yes "${NETWORKING}"; then
+	if [ ! -f /var/lock/subsys/network ]; then
+		msg_network_down netconsole
+		exit 1
+	fi
+else
+	exit 0
+fi
+
+eerror() {
+	echo >&2 "$*"
+	log_failed "$*"
+}
+
+checkconfig() {
+	# kernel uses 15 internally
+	if [ "$LOGLEVEL" -lt 0 -o "${LOGLEVEL}" -gt 15 ]; then
+		eerror "Invalid kernel console loglevel."
+		return 1
+	fi
+
+	if [ "$SRC_PORT" -le 0 ]; then
+		eerror "Invalid source port."
+		return 1
+	fi
+
+	LC_ALL=C /sbin/ifconfig "${DEVICE}" 1>/dev/null 2>/dev/null
+	ret=$?
+
+	if [ -z "${DEVICE}" -o "${ret}" -gt 0 ]; then
+		eerror "Source device invalid."
+		return 1
+	fi
+
+	if [ "$TGT_PORT" -le 0 ]; then
+		eerror "Invalid target port."
+		return 1
+	fi
+
+	if [ -z "$TGT_IP" ]; then
+		eerror "Unspecified target address."
+		return 1
+	fi
+
+	return 0
+}
+
+start() {
+	checkconfig || return 1
+	if [ -z "${TGT_MAC}" ]; then
+		LC_ALL=C /bin/ping -nq -c 3 "${TGT_IP}" -I "${DEVICE}" 1>/dev/null 2>/dev/null
+		ret=$?
+		# ping worked, try arp
+		if [ $ret -eq 0 ]; then
+			TGT_MAC="$(LC_ALL=C arp -an -i ${DEVICE} ${TGT_IP} |egrep -v 'incomplete|no match' | awk '{print $4}')"
+		fi
+	elif [ "${TGT_MAC}" == "broadcast" ]; then
+		TGT_MAC=''
+	fi
+
+	nls "Starting netconsole %s:%d(%s) -> %s:%d %s" "${SRC_IP}" "${SRC_PORT}" "${DEVICE}" "${TGT_IP}" "${TGT_PORT}" "${TGT_MAC}"
+	# else we use the MAC that we are given
+	modprobe netconsole netconsole=${SRC_PORT}@${SRC_IP}/${DEVICE},${TGT_PORT}@${TGT_IP}/${TGT_MAC}
+	ret=$?
+	[ $ret -eq 0 ] && dmesg -n ${LOGLEVEL}
+}
+
+stop() {
+	msg "Stopping netconsole"
+	modprobe -r netconsole
+	rc=$?
+	[ "$rc" = 0 ] && ok || fail
+	return $rc
+}
+
+# See how we were called.
+case "$1" in
+  start)
+	# Check if the service is already running?
+	if [ ! -f /var/lock/subsys/netconsole ]; then
+		start
+		RETVAL=$?
+		[ $RETVAL -eq 0 ] && touch /var/lock/subsys/netconsole
+	else
+		msg_already_running netconsole
+	fi
+	;;
+  stop)
+	if [ -f /var/lock/subsys/netconsole ]; then
+		stop
+		RETVAL=$?
+		[ $RETVAL -eq 0 ] && rm -f /var/lock/subsys/netconsole
+	else
+		msg_not_running netconsole
+	fi
+	;;
+  restart|force-reload)
+	$0 stop
+	$0 start
+	exit $?
+	;;
+  status)
+	status netconsole
+	RETVAL=$?
+	;;
+  *)
+	msg_usage "$0 {start|stop|restart|force-reload|status}"
+	exit 3
+esac
+
+exit $RETVAL
+
+# This must be last line !
+# vi:syntax=sh
