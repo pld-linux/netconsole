@@ -86,7 +86,7 @@ start() {
 }
 
 stop() {
-	msg "Stopping netconsole"
+	nls "Stopping netconsole"
 	modprobe -r netconsole
 	rc=$?
 	[ "$rc" = 0 ] && ok || fail
