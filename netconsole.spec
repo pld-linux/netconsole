@@ -1,4 +1,5 @@
-Summary:	initscript to load netkonsole.ko
+Summary:	initscript to load netconsole.ko module
+Summary(pl):	Skrypt inicjalizuj±cy do wczytywania modu³u netconsole.ko
 Name:		netconsole
 Version:	0.2
 Release:	0.1
@@ -14,7 +15,11 @@ BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 %description
 initscript to load netconsole kernel module.
 
+%description -l pl
+Skrypt inicjalizuj±cy do wczytywania modu³u j±dra netconsole.
+
 %prep
+
 %install
 rm -rf $RPM_BUILD_ROOT
 install -d $RPM_BUILD_ROOT/etc/{rc.d/init.d,sysconfig}
