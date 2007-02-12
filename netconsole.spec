@@ -1,5 +1,5 @@
 Summary:	An initscript to load netconsole.ko module
-Summary(pl):	Skrypt inicjalizuj±cy do wczytywania modu³u netconsole.ko
+Summary(pl.UTF-8):   Skrypt inicjalizujÄ…cy do wczytywania moduÅ‚u netconsole.ko
 Name:		netconsole
 Version:	0.2
 Release:	1
@@ -15,8 +15,8 @@ BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 %description
 An initscript to load netconsole kernel module.
 
-%description -l pl
-Skrypt inicjalizuj±cy do wczytywania modu³u j±dra netconsole.
+%description -l pl.UTF-8
+Skrypt inicjalizujÄ…cy do wczytywania moduÅ‚u jÄ…dra netconsole.
 
 %prep
 
