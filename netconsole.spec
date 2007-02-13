@@ -1,5 +1,5 @@
 Summary:	An initscript to load netconsole.ko module
-Summary(pl.UTF-8):   Skrypt inicjalizujący do wczytywania modułu netconsole.ko
+Summary(pl.UTF-8):	Skrypt inicjalizujący do wczytywania modułu netconsole.ko
 Name:		netconsole
 Version:	0.2
 Release:	1
