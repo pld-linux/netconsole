@@ -114,6 +114,7 @@ stop() {
 
 condrestart() {
 	if [ -f /var/lock/subsys/netconsole ]; then
+		checkconfig || exit 1
 		stop
 		start
 	else
@@ -132,6 +133,7 @@ case "$1" in
 	stop
 	;;
   restart)
+	checkconfig || exit 1
 	stop
 	start
 	;;
