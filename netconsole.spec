@@ -8,7 +8,7 @@ Group:		Base
 Source0:	%{name}.init
 Source1:	%{name}.sysconfig
 Source2:		http://glen.alkohol.ee/pld/netconsole.txt
-# Source2-md5:	9bef22121ef926b789940b8a51092a3a
+# Source2-md5:	5c4e978eef914087796fb756b86fd6b1
 # Documentation/networking/netconsole.txt (2.6.25.17)
 Requires(post,preun):	/sbin/chkconfig
 Requires:	rc-scripts
