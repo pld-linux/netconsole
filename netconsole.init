@@ -66,69 +66,86 @@ checkconfig() {
 }
 
 start() {
-	checkconfig || return 1
-	if [ -z "${TGT_MAC}" ]; then
-		LC_ALL=C /bin/ping -nq -c 3 "${TGT_IP}" -I "${DEVICE}" 1>/dev/null 2>/dev/null
-		ret=$?
-		# ping worked, try arp
-		if [ $ret -eq 0 ]; then
-			TGT_MAC="$(LC_ALL=C arp -an -i ${DEVICE} ${TGT_IP} |egrep -v 'incomplete|no match' | awk '{print $4}')"
-		fi
-	elif [ "${TGT_MAC}" == "broadcast" ]; then
-		TGT_MAC=''
-	fi
-
-	nls "Starting netconsole %s:%d(%s) -> %s:%d %s" "${SRC_IP}" "${SRC_PORT}" "${DEVICE}" "${TGT_IP}" "${TGT_PORT}" "${TGT_MAC}"
-	# else we use the MAC that we are given
-	modprobe netconsole netconsole=${SRC_PORT}@${SRC_IP}/${DEVICE},${TGT_PORT}@${TGT_IP}/${TGT_MAC}
-	ret=$?
-	[ $ret -eq 0 ] && dmesg -n ${LOGLEVEL}
-}
-
-stop() {
-	nls "Stopping netconsole"
-	modprobe -r netconsole
-	rc=$?
-	[ "$rc" = 0 ] && ok || fail
-	return $rc
-}
-
-# See how we were called.
-case "$1" in
-  start)
 	# Check if the service is already running?
 	if [ ! -f /var/lock/subsys/netconsole ]; then
-		start
+		checkconfig || exit 1
+
+		if [ -z "${TGT_MAC}" ]; then
+			LC_ALL=C /bin/ping -nq -c 3 "${TGT_IP}" -I "${DEVICE}" 1>/dev/null 2>/dev/null
+			ret=$?
+			# ping worked, try arp
+			if [ $ret -eq 0 ]; then
+				TGT_MAC="$(LC_ALL=C arp -an -i ${DEVICE} ${TGT_IP} | egrep -v 'incomplete|no match' | awk '{print $4}')"
+			fi
+		elif [ "${TGT_MAC}" == "broadcast" ]; then
+			TGT_MAC=''
+		fi
+
+		nls "Starting netconsole %s:%d(%s) -> %s:%d %s" "${SRC_IP}" "${SRC_PORT}" "${DEVICE}" "${TGT_IP}" "${TGT_PORT}" "${TGT_MAC}"
+		# else we use the MAC that we are given
+		modprobe netconsole netconsole=${SRC_PORT}@${SRC_IP}/${DEVICE},${TGT_PORT}@${TGT_IP}/${TGT_MAC}
 		RETVAL=$?
-		[ $RETVAL -eq 0 ] && touch /var/lock/subsys/netconsole
+		if [ $RETVAL = 0 ]; then
+			dmesg -n ${LOGLEVEL}
+			touch /var/lock/subsys/netconsole
+		fi
 	else
 		msg_already_running netconsole
 	fi
-	;;
-  stop)
+}
+
+stop() {
 	if [ -f /var/lock/subsys/netconsole ]; then
-		stop
+		nls "Stopping netconsole"
+		modprobe -r netconsole
 		RETVAL=$?
-		[ $RETVAL -eq 0 ] && rm -f /var/lock/subsys/netconsole
+		if [ $RETVAL = 0 ]; then
+			rm -f /var/lock/subsys/netconsole
+		   	ok
+		else
+			fail
+		fi
 	else
 		msg_not_running netconsole
 	fi
+}
+
+condrestart() {
+	if [ -f /var/lock/subsys/netconsole ]; then
+		stop
+		start
+	else
+		msg_not_running netconsole
+		RETVAL=$1
+	fi
+}
+
+RETVAL=0
+# See how we were called.
+case "$1" in
+  start)
+	start
 	;;
-  restart|force-reload)
-	$0 stop
-	$0 start
-	exit $?
+  stop)
+	stop
+	;;
+  restart)
+	stop
+	start
+	;;
+  try-restart)
+	condrestart 0
+	;;
+  force-reload)
+	condrestart 7
 	;;
   status)
 	status netconsole
 	RETVAL=$?
 	;;
   *)
-	msg_usage "$0 {start|stop|restart|force-reload|status}"
+	msg_usage "$0 {start|stop|restart|try-restart|force-reload|status}"
 	exit 3
 esac
 
 exit $RETVAL
-
-# This must be last line !
-# vi:syntax=sh
