@@ -18,6 +18,8 @@ BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 %description
 An initscript to load netconsole kernel module.
 
+For NetConsole Daemon, you can look at cancd package.
+
 %description -l pl.UTF-8
 Skrypt inicjalizujący do wczytywania modułu jądra netconsole.
 
