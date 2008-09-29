@@ -81,13 +81,15 @@ start() {
 			TGT_MAC=''
 		fi
 
-		nls "Starting netconsole %s:%d(%s) -> %s:%d %s" "${SRC_IP}" "${SRC_PORT}" "${DEVICE}" "${TGT_IP}" "${TGT_PORT}" "${TGT_MAC}"
-		# else we use the MAC that we are given
+		msg_starting netconsole
 		modprobe netconsole netconsole=${SRC_PORT}@${SRC_IP}/${DEVICE},${TGT_PORT}@${TGT_IP}/${TGT_MAC}
 		RETVAL=$?
 		if [ $RETVAL = 0 ]; then
+			ok
 			dmesg -n ${LOGLEVEL}
 			touch /var/lock/subsys/netconsole
+		else
+			fail
 		fi
 	else
 		msg_already_running netconsole
@@ -96,7 +98,7 @@ start() {
 
 stop() {
 	if [ -f /var/lock/subsys/netconsole ]; then
-		nls "Stopping netconsole"
+		msg_stopping netconsole
 		modprobe -r netconsole
 		RETVAL=$?
 		if [ $RETVAL = 0 ]; then
