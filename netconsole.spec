@@ -23,6 +23,8 @@ For NetConsole Daemon, you can look at cancd package.
 %description -l pl.UTF-8
 Skrypt inicjalizujący do wczytywania modułu jądra netconsole.
 
+Demona NetConsole można znaleźć w pakiecie cancd.
+
 %prep
 %setup -qcT
 cp -a %{SOURCE2} .
