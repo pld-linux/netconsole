@@ -2,7 +2,7 @@
 #
 # netconsole assisted netconsole module loading
 #
-# chkconfig:	2345 29 20
+# chkconfig:	2345 11 89
 #
 # description:	This initscript loads netconsole kernel module.
 #

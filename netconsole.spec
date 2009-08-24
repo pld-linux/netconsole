@@ -2,7 +2,7 @@ Summary:	An initscript to load netconsole.ko module
 Summary(pl.UTF-8):	Skrypt inicjalizujący do wczytywania modułu netconsole.ko
 Name:		netconsole
 Version:	0.2
-Release:	3
+Release:	4
 License:	GPL
 Group:		Base
 Source0:	%{name}.init
