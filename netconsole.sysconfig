@@ -6,18 +6,18 @@
 DEVICE=eth0
 
 # source IP to use (interface address)
-SRC_IP=""
 # will default to first address on $DEVICE
 # must be specified if the device does not have an IP at init time
+SRC_IP=""
 
-# source for UDP packets (defaults to 6665)
-SRC_PORT=6665 # default
+# source for UDP packets
+SRC_PORT=514
 
 # IP address for logging agent
 TGT_IP=""
 
-# port for logging agent (defaults 6666)
-TGT_PORT=6666
+# port for logging agent
+TGT_PORT=514
 
 # if you want to broadcast, specify 'broadcast' here.
 # it's a security hole on an untrusted network.
@@ -28,4 +28,4 @@ TGT_MAC=""
 # 1 means only kernel panics are reported (default)
 # this affects all console logging
 # see syslog(2) for more info
-LOGLEVEL="1"
+LOGLEVEL="7"
