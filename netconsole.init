@@ -20,7 +20,7 @@
 # Check that networking is up.
 if is_yes "${NETWORKING}"; then
 	if [ ! -f /var/lock/subsys/network ]; then
-		msg_network_down netconsole
+		msg_network_down "netconsole"
 		exit 1
 	fi
 else
@@ -67,60 +67,63 @@ checkconfig() {
 
 start() {
 	# Check if the service is already running?
-	if [ ! -f /var/lock/subsys/netconsole ]; then
-		checkconfig || exit 1
+	if [ -f /var/lock/subsys/netconsole ]; then
+		msg_already_running "netconsole"
+		return
+	fi
 
-		if [ -z "${TGT_MAC}" ]; then
-			LC_ALL=C /bin/ping -nq -c 3 "${TGT_IP}" -I "${DEVICE}" 1>/dev/null 2>/dev/null
-			ret=$?
-			# ping worked, try arp
-			if [ $ret -eq 0 ]; then
-				TGT_MAC="$(LC_ALL=C arp -an -i ${DEVICE} ${TGT_IP} | egrep -v 'incomplete|no match' | awk '{print $4}')"
-			fi
-		elif [ "${TGT_MAC}" == "broadcast" ]; then
-			TGT_MAC=''
-		fi
+	checkconfig || exit 1
 
-		msg_starting netconsole
-		modprobe netconsole netconsole=${SRC_PORT}@${SRC_IP}/${DEVICE},${TGT_PORT}@${TGT_IP}/${TGT_MAC}
-		RETVAL=$?
-		if [ $RETVAL = 0 ]; then
-			ok
-			dmesg -n ${LOGLEVEL}
-			touch /var/lock/subsys/netconsole
-		else
-			fail
+	if [ -z "${TGT_MAC}" ]; then
+		LC_ALL=C /bin/ping -nq -c 3 "${TGT_IP}" -I "${DEVICE}" 1>/dev/null 2>/dev/null
+		ret=$?
+		# ping worked, try arp
+		if [ $ret -eq 0 ]; then
+			TGT_MAC="$(LC_ALL=C arp -an -i ${DEVICE} ${TGT_IP} | egrep -v 'incomplete|no match' | awk '{print $4}')"
 		fi
+	elif [ "${TGT_MAC}" == "broadcast" ]; then
+		TGT_MAC=''
+	fi
+
+	msg_starting "netconsole"
+	modprobe netconsole netconsole=${SRC_PORT}@${SRC_IP}/${DEVICE},${TGT_PORT}@${TGT_IP}/${TGT_MAC}
+	RETVAL=$?
+	if [ $RETVAL = 0 ]; then
+		ok
+		dmesg -n ${LOGLEVEL}
+		touch /var/lock/subsys/netconsole
 	else
-		msg_already_running netconsole
+		fail
 	fi
 }
 
 stop() {
 	if [ -f /var/lock/subsys/netconsole ]; then
-		msg_stopping netconsole
-		modprobe -r netconsole
-		RETVAL=$?
-		if [ $RETVAL = 0 ]; then
-			rm -f /var/lock/subsys/netconsole
-		   	ok
-		else
-			fail
-		fi
+		msg_not_running "netconsole"
+		return
+	fi
+
+	msg_stopping "netconsole"
+	modprobe -r netconsole
+	RETVAL=$?
+	if [ $RETVAL = 0 ]; then
+		rm -f /var/lock/subsys/netconsole
+		ok
 	else
-		msg_not_running netconsole
+		fail
 	fi
 }
 
 condrestart() {
-	if [ -f /var/lock/subsys/netconsole ]; then
-		checkconfig || exit 1
-		stop
-		start
-	else
-		msg_not_running netconsole
+	if [ ! -f /var/lock/subsys/netconsole ]; then
+		msg_not_running "netconsole"
 		RETVAL=$1
+		return
 	fi
+
+	checkconfig || exit 1
+	stop
+	start
 }
 
 RETVAL=0
