@@ -1,15 +1,14 @@
 Summary:	An initscript to load netconsole.ko module
 Summary(pl.UTF-8):	Skrypt inicjalizujący do wczytywania modułu netconsole.ko
 Name:		netconsole
-Version:	0.2
-Release:	4
+Version:	0.3
+Release:	1
 License:	GPL
 Group:		Base
 Source0:	%{name}.init
 Source1:	%{name}.sysconfig
-Source2:	http://glen.alkohol.ee/pld/netconsole.txt
-# Source2-md5: 9bef22121ef926b789940b8a51092a3a
-# Documentation/networking/netconsole.txt (2.6.25.17)
+Source2:	http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=blob_plain;f=Documentation/networking/%{name}.txt
+# Source2-md5:	98712ca5ba15aaf6df29e0eea0acd753
 Requires(post,preun):	/sbin/chkconfig
 Requires:	rc-scripts
 BuildArch:	noarch
@@ -18,7 +17,8 @@ BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 %description
 An initscript to load netconsole kernel module.
 
-For NetConsole Daemon, you can look at cancd package.
+For NetConsole Daemon, you can look at cancd package or use plain
+syslog daemon.
 
 %description -l pl.UTF-8
 Skrypt inicjalizujący do wczytywania modułu jądra netconsole.
@@ -32,9 +32,8 @@ cp -a %{SOURCE2} .
 %install
 rm -rf $RPM_BUILD_ROOT
 install -d $RPM_BUILD_ROOT/etc/{rc.d/init.d,sysconfig}
-
-install %{SOURCE0} $RPM_BUILD_ROOT/etc/rc.d/init.d/netconsole
-install %{SOURCE1} $RPM_BUILD_ROOT/etc/sysconfig/netconsole
+install -p %{SOURCE0} $RPM_BUILD_ROOT/etc/rc.d/init.d/netconsole
+cp -a %{SOURCE1} $RPM_BUILD_ROOT/etc/sysconfig/netconsole
 
 %clean
 rm -rf "$RPM_BUILD_ROOT"
