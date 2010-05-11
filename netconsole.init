@@ -154,6 +154,16 @@ condrestart() {
 	start
 }
 
+status() {
+	local loaded=$(lsmod | awk '$1 == "netconsole" {print $1}')
+	if [ -z "$res" ]; then
+		echo "netconsole kernel module not loaded"
+		RETVAL=1
+	else
+		echo "netconsole kernel module is loaded"
+	fi
+}
+
 RETVAL=0
 # See how we were called.
 case "$1" in
@@ -178,7 +188,7 @@ case "$1" in
 	checkconfig 1
 	;;
   status)
-	status netconsole
+	status
 	RETVAL=$?
 	;;
   *)
