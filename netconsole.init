@@ -27,42 +27,70 @@ else
 	exit 0
 fi
 
-eerror() {
-	echo >&2 "$*"
-	log_failed "$*"
-}
-
-checkconfig() {
+# configtest itself
+# must return non-zero if check failed
+# output is discarded if checkconfig is ran without details
+configtest() {
 	# anything above 8 reports invalid argument
 	if [ "$LOGLEVEL" -lt 0 -o "$LOGLEVEL" -gt 8 ]; then
-		eerror "Invalid kernel console loglevel."
+		nls "Invalid kernel console loglevel."
 		return 1
 	fi
 
 	if [ "$SRC_PORT" -le 0 ]; then
-		eerror "Invalid source port."
+		nls "Invalid source port."
 		return 1
 	fi
 
+	# TODO: use ip(8)
 	LC_ALL=C /sbin/ifconfig "${DEVICE}" 1>/dev/null 2>/dev/null
 	ret=$?
 
 	if [ -z "${DEVICE}" -o "${ret}" -gt 0 ]; then
-		eerror "Source device invalid."
+		nls "Source device invalid."
 		return 1
 	fi
 
 	if [ "$TGT_PORT" -le 0 ]; then
-		eerror "Invalid target port."
+		nls "Invalid target port."
 		return 1
 	fi
 
 	if [ -z "$TGT_IP" ]; then
-		eerror "Unspecified target address."
+		nls "Unspecified target address."
 		return 1
 	fi
 
 	return 0
+}
+
+# wrapper for configtest
+checkconfig() {
+	local details=${1:-0}
+
+	if [ $details = 1 ]; then
+		# run config test and display report (status action)
+		show "Checking %s configuration" "netconsole"; busy
+		local out
+		out=$(configtest 2>&1)
+		RETVAL=$?
+		if [ $RETVAL = 0 ]; then
+			ok
+		else
+			fail
+		fi
+		[ "$out" ] && echo >&2 "$out"
+	else
+		# run config test and abort with nice message if failed
+		# (for actions checking status before action).
+		configtest >/dev/null 2>&1
+		RETVAL=$?
+		if [ $RETVAL != 0 ]; then
+			show "Checking %s configuration" "netconsole"; fail
+			nls 'Configuration test failed. See details with %s "checkconfig"' $0
+			exit $RETVAL
+		fi
+	fi
 }
 
 start() {
@@ -72,7 +100,7 @@ start() {
 		return
 	fi
 
-	checkconfig || exit 1
+	checkconfig
 
 	if [ -z "${TGT_MAC}" ]; then
 		LC_ALL=C /bin/ping -nq -c 3 "${TGT_IP}" -I "${DEVICE}" 1>/dev/null 2>/dev/null
@@ -121,7 +149,7 @@ condrestart() {
 		return
 	fi
 
-	checkconfig || exit 1
+	checkconfig
 	stop
 	start
 }
@@ -136,7 +164,7 @@ case "$1" in
 	stop
 	;;
   restart)
-	checkconfig || exit 1
+	checkconfig
 	stop
 	start
 	;;
@@ -146,12 +174,15 @@ case "$1" in
   force-reload)
 	condrestart 7
 	;;
+  checkconfig|configtest)
+	checkconfig 1
+	;;
   status)
 	status netconsole
 	RETVAL=$?
 	;;
   *)
-	msg_usage "$0 {start|stop|restart|try-restart|force-reload|status}"
+	msg_usage "$0 {start|stop|restart|try-restart|force-reload|checkconfig|status}"
 	exit 3
 esac
 
