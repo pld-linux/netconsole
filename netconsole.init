@@ -155,7 +155,7 @@ condrestart() {
 }
 
 status() {
-	local loaded=$(lsmod | awk '$1 == "netconsole" {print $1}')
+	local res=$(lsmod | awk '$1 == "netconsole" {print $1}')
 	if [ -z "$res" ]; then
 		echo "netconsole kernel module not loaded"
 		RETVAL=1
