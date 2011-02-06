@@ -36,7 +36,7 @@ install -p %{SOURCE0} $RPM_BUILD_ROOT/etc/rc.d/init.d/netconsole
 cp -a %{SOURCE1} $RPM_BUILD_ROOT/etc/sysconfig/netconsole
 
 %clean
-rm -rf "$RPM_BUILD_ROOT"
+rm -rf $RPM_BUILD_ROOT
 
 %post
 /sbin/chkconfig --add netconsole
