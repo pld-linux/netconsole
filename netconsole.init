@@ -42,12 +42,8 @@ configtest() {
 		return 1
 	fi
 
-	# TODO: use ip(8)
-	LC_ALL=C /sbin/ifconfig "${DEVICE}" 1>/dev/null 2>/dev/null
-	ret=$?
-
-	if [ -z "${DEVICE}" -o "${ret}" -gt 0 ]; then
-		nls "Source device invalid."
+	if [ ! -e "/sys/class/net/${DEVICE}" ]; then
+		nls "Can't find ${DEVICE} - invalid."
 		return 1
 	fi
 
